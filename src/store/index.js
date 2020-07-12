@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
+import axios from 'axios'
 import * as types from './mutation-types'
 import { StoreUtil } from "../utils";
 
@@ -13,7 +14,9 @@ export default new Vuex.Store({
     users: StoreUtil.state(),
     postUsers: StoreUtil.state(),
     deleteUser: StoreUtil.state(),
-    sendEmail: StoreUtil.state(),
+    email: StoreUtil.state(),
+    authorization: StoreUtil.state(),
+    authUser: StoreUtil.state()
   },
   mutations: {
     [types.SET_CCCAL_GETEVENTS](state, payload) {
@@ -34,8 +37,14 @@ export default new Vuex.Store({
     [types.SET_CCCAL_DELETEUSERS](state, payload) {
       state.deleteUser = StoreUtil.updateState(state.deleteUser, payload);
     },
-    [types.SET_CCCAL_SENDEMAIL](state, payload) {
-      state.sendEmail = StoreUtil.updateState(state.sendEmail, payload);
+    [types.SET_CCCAL_EMAIL](state, payload) {
+      state.email = StoreUtil.updateState(state.email, payload);
+    },
+    [types.SET_CCCAL_AUTHORIZATION](state, payload) {
+      state.authorization = StoreUtil.updateState(state.authorization, payload);
+    },
+    [types.SET_CCCAL_AUTHUSER](state, payload) {
+      state.authUser = StoreUtil.updateState(state.authUser, payload);
     }
   },
   actions: {
@@ -170,7 +179,6 @@ export default new Vuex.Store({
           })
     },
     sendEmail ({ commit }, event) {
-      console.log('emailObject',event);
       let url = `http://127.0.0.1:8000/email`;
       return fetch(url, {
         method: 'POST',
@@ -186,7 +194,27 @@ export default new Vuex.Store({
             console.log('Email send!')
           })
           .catch(e => {
-            commit(types.SET_CCCAL_SENDEMAIL, e);
+            commit(types.SET_CCCAL_EMAIL, e);
+          })
+    },
+    getAuthorization ({ commit }, user) {
+      console.log('getAit',user);
+      axios
+          .post('http://127.0.0.1:8000/login', {
+            email: user.email,
+            password: user.password
+          })
+          .then(res => {
+                  console.log('hier rein', res.headers);
+                  commit(types.SET_CCCAL_AUTHORIZATION, (res.headers.location));
+                })
+    },
+    getAuthUser ({ commit }, userUri) {
+      console.log('userUri', userUri);
+      axios
+          .get('http://127.0.0.1:8000' + userUri)
+          .then(res => {
+            commit(types.SET_CCCAL_AUTHUSER, res.data);
           })
     }
   },
@@ -197,6 +225,8 @@ export default new Vuex.Store({
     users: state => state.users,
     postUsers: state => state.postUsers,
     deleteUser: state => state.deleteUser,
-    sendEmail: state => state.sendEmail
+    email: state => state.email,
+    authorization: state => state.authorization,
+    authUser: state => state.authUser
   }
 });
